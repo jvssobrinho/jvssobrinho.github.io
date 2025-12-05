@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2636453461184153"
-     crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador Interativo de Sistemas de Amortização</title>
@@ -11,15 +9,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutrals (Tailwind Slate/Amber) -->
-    <!-- Application Structure Plan: A dashboard-style single-page application. It features a main control panel at the top for user inputs (loan amount, interest rate, term) and a simulation button. Below, a responsive grid displays individual cards for each amortization system. Each card contains key calculated metrics (e.g., first/last installment, total interest) and two line charts visualizing the installment value and outstanding balance over time. This structure was chosen to facilitate direct, side-by-side comparison, allowing users to instantly see the impact of changing variables across all systems, which is far more intuitive and educational than a static table. -->
-    <!-- Visualization & Content Choices: Report Info: Table comparing 5 amortization systems. -> Goal: Allow users to compare systems dynamically. -> Viz/Presentation Method: Interactive sliders for input, summary cards with key performance indicators (KPIs), and dual line charts (via Chart.js) per system to show trends. -> Interaction: Users adjust loan parameters via sliders and click a button to trigger the simulation, which updates all cards and charts. -> Justification: This multi-faceted approach provides layers of understanding—from high-level KPIs to detailed trend analysis via charts—making complex financial concepts accessible. -> Library/Method: Vanilla JS for calculations, Chart.js for canvas-based charts. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body { font-family: 'Inter', sans-serif; }
         .chart-container { position: relative; height: 220px; width: 100%; margin-top: 1rem; }
-        .slider-thumb::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #c2410c; cursor: pointer; border-radius: 50%; }
-        .slider-thumb::-moz-range-thumb { width: 20px; height: 20px; background: #c2410c; cursor: pointer; border-radius: 50%; }
+        /* Remove arrows from number inputs (Chrome, Safari, Edge, Opera) */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Remove arrows from number inputs (Firefox) */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -28,42 +30,54 @@
         
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Simulador de Sistemas de Amortização</h1>
-            <p class="mt-2 text-slate-600 max-w-2xl mx-auto">Compare os principais sistemas de financiamento. Ajuste os valores abaixo e veja o impacto em cada modalidade.</p>
+            <p class="mt-2 text-slate-600 max-w-2xl mx-auto">Compare os principais sistemas de financiamento. Digite os valores abaixo e veja o impacto em cada modalidade.</p>
         </header>
 
         <div class="bg-white p-6 rounded-2xl shadow-lg mb-8 sticky top-4 z-10">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                 
                 <div>
-                    <label for="loanAmount" class="block text-sm font-medium text-slate-700">Valor do Empréstimo</label>
-                    <input id="loanAmount" type="range" min="1000" max="1000000" step="1000" value="100000" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider-thumb accent-orange-800">
-                    <span id="loanAmountValue" class="text-lg font-bold text-orange-800">R$ 100.000,00</span>
+                    <label for="loanAmount" class="block text-sm font-medium text-slate-700 mb-2">Valor do Empréstimo (R$)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">R$</span>
+                        </div>
+                        <input id="loanAmount" type="number" min="0" step="100" value="100000" 
+                               class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-slate-900 font-semibold"
+                               placeholder="0.00">
+                    </div>
                 </div>
                 
                 <div>
-                    <label for="interestRate" class="block text-sm font-medium text-slate-700">Taxa de Juros Anual (%)</label>
-                    <input id="interestRate" type="range" min="1" max="30" step="0.1" value="10" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider-thumb accent-orange-800">
-                    <span id="interestRateValue" class="text-lg font-bold text-orange-800">10.0%</span>
+                    <label for="interestRate" class="block text-sm font-medium text-slate-700 mb-2">Taxa de Juros Anual (%)</label>
+                    <div class="relative">
+                        <input id="interestRate" type="number" min="0" step="0.01" value="10.00" 
+                               class="w-full pl-4 pr-8 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-slate-900 font-semibold"
+                               placeholder="0.00">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">%</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
-                    <label for="loanTerm" class="block text-sm font-medium text-slate-700">Prazo (Meses)</label>
-                    <input id="loanTerm" type="range" min="12" max="420" step="12" value="120" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider-thumb accent-orange-800">
-                    <span id="loanTermValue" class="text-lg font-bold text-orange-800">120 meses</span>
+                    <label for="loanTerm" class="block text-sm font-medium text-slate-700 mb-2">Prazo (Meses)</label>
+                    <input id="loanTerm" type="number" min="1" step="1" value="120" 
+                           class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-slate-900 font-semibold"
+                           placeholder="Ex: 120">
                 </div>
 
             </div>
             <div class="text-center mt-6">
-                <button id="simulateBtn" class="bg-orange-800 text-white font-bold py-3 px-8 rounded-lg hover:bg-orange-900 transition-colors shadow-md">
+                <button id="simulateBtn" class="bg-orange-800 text-white font-bold py-3 px-8 rounded-lg hover:bg-orange-900 transition-colors shadow-md w-full md:w-auto">
                     Simular e Comparar
                 </button>
             </div>
         </div>
         
         <main id="resultsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             <!-- Cards will be injected here by JavaScript -->
              <div class="col-span-1 md:col-span-2 lg:col-span-3 text-center p-10 bg-white rounded-2xl shadow-md">
-                <p class="text-slate-500">Ajuste os parâmetros e clique em "Simular e Comparar" para ver os resultados.</p>
+                <p class="text-slate-500">Insira os valores acima e clique em "Simular e Comparar" para ver os resultados.</p>
             </div>
         </main>
     </div>
@@ -72,9 +86,6 @@
         const loanAmountInput = document.getElementById('loanAmount');
         const interestRateInput = document.getElementById('interestRate');
         const loanTermInput = document.getElementById('loanTerm');
-        const loanAmountValue = document.getElementById('loanAmountValue');
-        const interestRateValue = document.getElementById('interestRateValue');
-        const loanTermValue = document.getElementById('loanTermValue');
         const simulateBtn = document.getElementById('simulateBtn');
         const resultsGrid = document.getElementById('resultsGrid');
         
@@ -83,16 +94,6 @@
         const formatCurrency = (value) => {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
         };
-
-        const updateDisplayValues = () => {
-            loanAmountValue.textContent = formatCurrency(parseFloat(loanAmountInput.value));
-            interestRateValue.textContent = `${parseFloat(interestRateInput.value).toFixed(1)}%`;
-            loanTermValue.textContent = `${loanTermInput.value} meses`;
-        };
-
-        loanAmountInput.addEventListener('input', updateDisplayValues);
-        interestRateInput.addEventListener('input', updateDisplayValues);
-        loanTermInput.addEventListener('input', updateDisplayValues);
 
         const createCard = (id, title, description) => {
             const card = document.createElement('div');
@@ -114,7 +115,7 @@
                         <span class="block text-slate-500">Total Pago</span>
                         <strong id="total-paid-${id}" class="block text-lg text-slate-700">-</strong>
                     </div>
-                     <div>
+                      <div>
                         <span class="block text-slate-500">Total de Juros</span>
                         <strong id="total-interest-${id}" class="block text-lg text-slate-700">-</strong>
                     </div>
@@ -186,7 +187,7 @@
                                 font: { size: 10 },
                                 callback: function(value, index, values) {
                                    if (index === 0 || index === values.length - 1) {
-                                       return this.getLabelForValue(value);
+                                        return this.getLabelForValue(value);
                                    }
                                    return '';
                                 }
@@ -261,16 +262,16 @@
             for(let year = 0; year < term / 12; year++) {
                 const amortization = balance / remainingTerm;
                 for (let month = 0; month < 12; month++) {
-                     if (installmentsData.length >= term) break;
-                     const interest = balance * monthlyRate;
-                     const installment = amortization + interest;
-                     balance -= amortization;
-                     remainingTerm--;
+                      if (installmentsData.length >= term) break;
+                      const interest = balance * monthlyRate;
+                      const installment = amortization + interest;
+                      balance -= amortization;
+                      remainingTerm--;
 
-                     installmentsData.push({ installment, interest, amortization });
-                     balances.push(balance > 0 ? balance : 0);
-                     totalPaid += installment;
-                     totalInterest += interest;
+                      installmentsData.push({ installment, interest, amortization });
+                      balances.push(balance > 0 ? balance : 0);
+                      totalPaid += installment;
+                      totalInterest += interest;
                 }
             }
 
@@ -355,10 +356,16 @@
             resultsGrid.innerHTML = '';
             charts = {};
             
+            // Getting values directly from inputs
             const p = parseFloat(loanAmountInput.value);
             const t = parseInt(loanTermInput.value);
             const r = parseFloat(interestRateInput.value);
             
+            if (isNaN(p) || isNaN(t) || isNaN(r) || p <= 0 || t <= 0) {
+                alert("Por favor, insira valores válidos.");
+                return;
+            }
+
             const labels = Array.from({ length: t + 1 }, (_, i) => i);
 
             systems.forEach(sys => {
@@ -384,8 +391,16 @@
         };
         
         simulateBtn.addEventListener('click', runSimulation);
+        
+        // Optional: Run simulation on Enter key for inputs
+        [loanAmountInput, interestRateInput, loanTermInput].forEach(input => {
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    runSimulation();
+                }
+            });
+        });
 
-        updateDisplayValues();
     </script>
 </body>
 </html>
