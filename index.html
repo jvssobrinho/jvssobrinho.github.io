@@ -6,6 +6,8 @@
     <title>Simulador Interativo de Sistemas de Amortização</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -68,26 +70,31 @@
                 </div>
 
             </div>
-            <div class="text-center mt-6">
+            
+            <div class="flex flex-col md:flex-row justify-center gap-4 mt-6">
                 <button id="simulateBtn" class="bg-orange-800 text-white font-bold py-3 px-8 rounded-lg hover:bg-orange-900 transition-colors shadow-md w-full md:w-auto">
                     Simular e Comparar
+                </button>
+                
+                <button id="exportBtn" class="hidden bg-green-700 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-800 transition-colors shadow-md w-full md:w-auto flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Baixar Planilha Detalhada (Excel)
                 </button>
             </div>
         </div>
         
-        <main id="resultsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <main id="resultsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
              <div class="col-span-1 md:col-span-2 lg:col-span-3 text-center p-10 bg-white rounded-2xl shadow-md">
                 <p class="text-slate-500">Insira os valores acima e clique em "Simular e Comparar" para ver os resultados.</p>
             </div>
         </main>
 
-        <footer class="text-center border-t border-slate-200 pt-8 pb-8">
-            <p class="text-slate-700 font-medium">João Vitor dos Santos Sobrinho (graduando em Economia/UEFS)</p>
-            <p class="text-slate-500 text-sm mt-1">
-                Contato: <a href="mailto:vito.toro.jv1@gmail.com" class="text-orange-800 hover:underline">vito.toro.jv1@gmail.com</a>
-            </p>
+        <footer class="mt-12 pt-8 border-t border-slate-200 text-center text-slate-500 text-sm pb-4">
+            <p class="font-semibold text-slate-700">João Vitor dos Santos Sobrinho (graduando em Economia/UEFS)</p>
+            <p class="mt-1">Contato: <a href="mailto:vito.toro.jv1@gmail.com" class="text-orange-800 hover:underline">vito.toro.jv1@gmail.com</a></p>
         </footer>
-
     </div>
 
     <script>
@@ -95,9 +102,11 @@
         const interestRateInput = document.getElementById('interestRate');
         const loanTermInput = document.getElementById('loanTerm');
         const simulateBtn = document.getElementById('simulateBtn');
+        const exportBtn = document.getElementById('exportBtn');
         const resultsGrid = document.getElementById('resultsGrid');
         
         let charts = {};
+        let currentSimulationData = null; // Armazena dados para exportação
 
         const formatCurrency = (value) => {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -206,6 +215,7 @@
             });
         };
         
+        // --- CALCULATION FUNCTIONS (Same as before) ---
         function calculatePrice(principal, term, annualRate) {
             const monthlyRate = annualRate / 12 / 100;
             if (monthlyRate === 0) {
@@ -356,7 +366,7 @@
             { id: 'sac', title: 'Constante (SAC)', description: 'Amortização constante e parcelas decrescentes.', calculator: calculateSAC },
             { id: 'sacre', title: 'Crescente (SACRE)', description: 'Parcelas reajustadas, geralmente anualmente.', calculator: calculateSACRE },
             { id: 'american', title: 'Americano', description: 'Paga-se só juros, e o principal no final.', calculator: calculateAmerican },
-            { id: 'misto', title: 'Misto (SAC/Price)', description: 'Híbrido que combina características de outros sistemas.', calculator: calculateMisto },
+            { id: 'misto', title: 'Misto (SAC_Price)', description: 'Híbrido que combina características de outros sistemas.', calculator: calculateMisto },
         ];
 
 
@@ -364,7 +374,6 @@
             resultsGrid.innerHTML = '';
             charts = {};
             
-            // Getting values directly from inputs
             const p = parseFloat(loanAmountInput.value);
             const t = parseInt(loanTermInput.value);
             const r = parseFloat(interestRateInput.value);
@@ -375,6 +384,9 @@
             }
 
             const labels = Array.from({ length: t + 1 }, (_, i) => i);
+            
+            // Prepare object to hold data for Excel export later
+            currentSimulationData = { p, t, r, systemsResults: [] };
 
             systems.forEach(sys => {
                 const card = createCard(sys.id, sys.title, sys.description);
@@ -383,6 +395,12 @@
                 setTimeout(() => { card.style.opacity = 1; }, 100);
 
                 const result = sys.calculator(p, t, r);
+                
+                // Save for export
+                currentSimulationData.systemsResults.push({
+                    name: sys.title,
+                    data: result
+                });
                 
                 document.getElementById(`first-installment-${sys.id}`).textContent = formatCurrency(result.first);
                 document.getElementById(`last-installment-${sys.id}`).textContent = formatCurrency(result.last);
@@ -396,11 +414,56 @@
                 renderChart(`installments-chart-${sys.id}`, 'Composição da Parcela', labels.slice(1), amortizationValues, interestValues);
                 renderChart(`balance-chart-${sys.id}`, 'Evolução do Saldo Devedor', labels, result.balances);
             });
+
+            // Show export button
+            exportBtn.classList.remove('hidden');
+        };
+
+        const exportToExcel = () => {
+            if (!currentSimulationData) return;
+
+            // Create a new workbook
+            const wb = XLSX.utils.book_new();
+
+            currentSimulationData.systemsResults.forEach(sys => {
+                // Header row
+                const wsData = [
+                    ["Mês", "Prestação (PMT)", "Juros", "Amortização", "Saldo Devedor"]
+                ];
+
+                // Initial state (Month 0)
+                wsData.push([0, 0, 0, 0, currentSimulationData.p]);
+
+                // Fill rows
+                sys.data.installmentsData.forEach((row, index) => {
+                    wsData.push([
+                        index + 1,
+                        row.installment,
+                        row.interest,
+                        row.amortization,
+                        sys.data.balances[index + 1]
+                    ]);
+                });
+
+                // Add Totals Row
+                wsData.push(["TOTAL", sys.data.totalPaid, sys.data.totalInterest, currentSimulationData.p, 0]);
+
+                // Create worksheet
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                
+                // Add sheet to workbook (Clean name for Excel tab)
+                const sheetName = sys.name.replace(/[^a-zA-Z0-9 ]/g, "").substring(0, 31);
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            });
+
+            // Trigger download
+            XLSX.writeFile(wb, "Simulacao_Amortizacao.xlsx");
         };
         
         simulateBtn.addEventListener('click', runSimulation);
+        exportBtn.addEventListener('click', exportToExcel);
         
-        // Optional: Run simulation on Enter key for inputs
+        // Optional: Run simulation on Enter key
         [loanAmountInput, interestRateInput, loanTermInput].forEach(input => {
             input.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
