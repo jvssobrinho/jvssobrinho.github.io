@@ -14,16 +14,9 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .chart-container { position: relative; height: 220px; width: 100%; margin-top: 1rem; }
-        /* Remove arrows from number inputs (Chrome, Safari, Edge, Opera) */
         input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        /* Remove arrows from number inputs (Firefox) */
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
@@ -32,7 +25,7 @@
         
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Simulador de Sistemas de Amortização</h1>
-            <p class="mt-2 text-slate-600 max-w-2xl mx-auto">Compare os principais sistemas de financiamento. Digite os valores abaixo e veja o impacto em cada modalidade.</p>
+            <p class="mt-2 text-slate-600 max-w-2xl mx-auto">Compare os principais sistemas de financiamento.</p>
         </header>
 
         <div class="bg-white p-6 rounded-2xl shadow-lg mb-8 sticky top-4 z-10">
@@ -45,8 +38,7 @@
                             <span class="text-gray-500 sm:text-sm">R$</span>
                         </div>
                         <input id="loanAmount" type="number" min="0" step="100" value="100000" 
-                               class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-slate-900 font-semibold"
-                               placeholder="0.00">
+                               class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-slate-900 font-semibold">
                     </div>
                 </div>
                 
@@ -54,8 +46,7 @@
                     <label for="interestRate" class="block text-sm font-medium text-slate-700 mb-2">Taxa de Juros Anual (%)</label>
                     <div class="relative">
                         <input id="interestRate" type="number" min="0" step="0.01" value="10.00" 
-                               class="w-full pl-4 pr-8 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-slate-900 font-semibold"
-                               placeholder="0.00">
+                               class="w-full pl-4 pr-8 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-slate-900 font-semibold">
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                             <span class="text-gray-500 sm:text-sm">%</span>
                         </div>
@@ -65,8 +56,7 @@
                 <div>
                     <label for="loanTerm" class="block text-sm font-medium text-slate-700 mb-2">Prazo (Meses)</label>
                     <input id="loanTerm" type="number" min="1" step="1" value="120" 
-                           class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-slate-900 font-semibold"
-                           placeholder="Ex: 120">
+                           class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-slate-900 font-semibold">
                 </div>
 
             </div>
@@ -80,11 +70,22 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    Baixar Planilha Detalhada (Excel)
+                    Baixar Planilha (Excel)
                 </button>
             </div>
         </div>
         
+        <div class="bg-white p-6 rounded-2xl shadow-lg mb-8 border border-slate-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="text-yellow-400 text-2xl">★</span> Recomendados para Você
+                </h3>
+                <span class="text-xs text-slate-400 uppercase tracking-wide">Publicidade</span>
+            </div>
+            
+            <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            </div>
+        </div>
         <main id="resultsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
              <div class="col-span-1 md:col-span-2 lg:col-span-3 text-center p-10 bg-white rounded-2xl shadow-md">
                 <p class="text-slate-500">Insira os valores acima e clique em "Simular e Comparar" para ver os resultados.</p>
@@ -98,6 +99,71 @@
     </div>
 
     <script>
+        // ============================================================
+        //  CONFIGURAÇÃO DA VITRINE (LISTA DE PRODUTOS)
+        // ============================================================
+        
+        // 1. EDITE AQUI: Troque os links e imagens pelos seus
+        const products = [
+            {
+                title: "Nintendo Switch",
+                image: "https://www.mercadolivre.com.br/bundle-nintendo-switch-2-mario-kart-world/p/MLB48935147?pdp_filters=item_id%3AMLB4045705721#polycard_client=affiliates&wid=MLB4045705721&sid=affiliates", 
+                link: "https://mercadolivre.com/sec/2W524NT"
+            },
+            {
+                title: "Parafusadeira",
+                image: "https://www.mercadolivre.com.br/parafusadeira-furadeira-de-impacto-the-black-tools-profissional-tb-21px-2-baterias-com-maleta-60hz-amarelo/p/MLB30144703?pdp_filters=item_id%3AMLB4268042659#polycard_client=affiliates&wid=MLB4268042659&sid=affiliates",
+                link: "https://mercadolivre.com/sec/1fyy6vB"
+            },
+            {
+                title: "Smart TV",
+                image: "https://www.mercadolivre.com.br/smart-tv-tcl-40-polegadas-full-hd-qled-s5k-wifi-bluetooth-google-tv-2-hdmi-hdr10-dolby-audio-40s5k/p/MLB49197358?pdp_filters=item_id%3AMLB5879105066#polycard_client=affiliates&wid=MLB5879105066&sid=affiliates",
+                link: "https://mercadolivre.com/sec/2iS8JbD"
+            },
+            {
+                title: "Kindle 11ª Geração",
+                image: "https://www.mercadolivre.com.br/notebook-samsung-galaxy-book4-intel-u300-120-ghz-ate-44ghz-8-mb-l3-cache-windows-11-home-8gb-256gb-ssd-uhd-graphics-156-full-hd-led-155kg/p/MLB40347107?pdp_filters=item_id%3AMLB3847742125#polycard_client=affiliates&wid=MLB3847742125&sid=affiliates",
+                link: "https://mercadolivre.com/sec/2sypYhb"
+            }
+        ];
+
+        // 2. Função que desenha a vitrine na tela
+        const renderProducts = () => {
+            const grid = document.getElementById('product-grid');
+            if(!grid) return;
+
+            grid.innerHTML = products.map(product => `
+                <a href="${product.link}" target="_blank" rel="noopener noreferrer" 
+                   class="group block bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-xl hover:border-orange-300 transition-all duration-300 flex flex-col h-full">
+                    
+                    <div class="h-40 w-full p-4 flex items-center justify-center bg-white group-hover:scale-105 transition-transform duration-500">
+                        <img src="${product.image}" alt="${product.title}" class="max-h-full max-w-full object-contain">
+                    </div>
+                    
+                    <div class="p-4 flex flex-col flex-grow border-t border-slate-100 bg-slate-50">
+                        <h4 class="text-sm font-medium text-slate-700 mb-2 line-clamp-2" title="${product.title}">
+                            ${product.title}
+                        </h4>
+                        <div class="mt-auto">
+                            <p class="text-lg font-bold text-slate-900">${product.price}</p>
+                            <p class="text-xs text-green-600 font-semibold mb-3">Em até 12x</p>
+                            <button class="w-full bg-blue-600 text-white text-xs font-bold py-2 rounded group-hover:bg-blue-700 transition-colors">
+                                VER NO SITE
+                            </button>
+                        </div>
+                    </div>
+                </a>
+            `).join('');
+        };
+        
+        // Ativa a vitrine assim que o site carrega
+        document.addEventListener('DOMContentLoaded', renderProducts);
+
+        // ============================================================
+        //  FIM DA CONFIGURAÇÃO DA VITRINE
+        // ============================================================
+
+
         const loanAmountInput = document.getElementById('loanAmount');
         const interestRateInput = document.getElementById('interestRate');
         const loanTermInput = document.getElementById('loanTerm');
@@ -106,7 +172,7 @@
         const resultsGrid = document.getElementById('resultsGrid');
         
         let charts = {};
-        let currentSimulationData = null; // Armazena dados para exportação
+        let currentSimulationData = null;
 
         const formatCurrency = (value) => {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -117,361 +183,4 @@
             card.className = 'bg-white p-5 rounded-2xl shadow-md flex flex-col transition-opacity duration-500 opacity-0';
             card.id = `card-${id}`;
             card.innerHTML = `
-                <h2 class="text-xl font-bold text-slate-900">${title}</h2>
-                <p class="text-sm text-slate-500 mb-4">${description}</p>
-                <div class="grid grid-cols-2 gap-3 text-sm mb-4 flex-grow">
-                    <div>
-                        <span class="block text-slate-500">1ª Parcela</span>
-                        <strong id="first-installment-${id}" class="block text-lg text-orange-800">-</strong>
-                    </div>
-                    <div>
-                        <span class="block text-slate-500">Última Parcela</span>
-                        <strong id="last-installment-${id}" class="block text-lg text-orange-800">-</strong>
-                    </div>
-                    <div>
-                        <span class="block text-slate-500">Total Pago</span>
-                        <strong id="total-paid-${id}" class="block text-lg text-slate-700">-</strong>
-                    </div>
-                      <div>
-                        <span class="block text-slate-500">Total de Juros</span>
-                        <strong id="total-interest-${id}" class="block text-lg text-slate-700">-</strong>
-                    </div>
-                </div>
-                <div class="chart-container"><canvas id="installments-chart-${id}"></canvas></div>
-                <div class="chart-container"><canvas id="balance-chart-${id}"></canvas></div>
-            `;
-            return card;
-        };
-
-        const renderChart = (canvasId, label, labels, data1, data2 = null) => {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            
-            if (charts[canvasId]) {
-                charts[canvasId].destroy();
-            }
-
-            const datasets = [{
-                label: data2 ? 'Parcela' : 'Saldo Devedor',
-                data: data1,
-                borderColor: '#94a3b8',
-                backgroundColor: 'rgba(148, 163, 184, 0.1)',
-                borderWidth: 2,
-                tension: 0.1,
-                pointRadius: 0,
-                fill: true,
-            }];
-
-            if(data2) {
-                 datasets[0].label = 'Amortização';
-                 datasets.push({
-                    label: 'Juros',
-                    data: data2,
-                    borderColor: '#f97316',
-                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                    borderWidth: 2,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    fill: true,
-                })
-            }
-
-            charts[canvasId] = new Chart(ctx, {
-                type: 'line',
-                data: { labels, datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: { display: true, text: label, color: '#475569' },
-                        legend: { display: data2 ? true : false, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => `${context.dataset.label}: ${formatCurrency(context.raw)}`
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            ticks: {
-                                callback: (value) => formatCurrency(value).replace(',00',''),
-                                font: { size: 10 }
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                maxRotation: 0,
-                                minRotation: 0,
-                                font: { size: 10 },
-                                callback: function(value, index, values) {
-                                   if (index === 0 || index === values.length - 1) {
-                                        return this.getLabelForValue(value);
-                                   }
-                                   return '';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        };
-        
-        // --- CALCULATION FUNCTIONS (Same as before) ---
-        function calculatePrice(principal, term, annualRate) {
-            const monthlyRate = annualRate / 12 / 100;
-            if (monthlyRate === 0) {
-                 const installment = principal / term;
-                 return { first: installment, last: installment, totalPaid: principal, totalInterest: 0, installments: Array(term).fill(installment), balances: Array.from({length: term + 1}, (_, i) => principal - i * installment) };
-            }
-            
-            const factor = Math.pow(1 + monthlyRate, term);
-            const installment = principal * (monthlyRate * factor) / (factor - 1);
-            
-            let balance = principal;
-            const installmentsData = [];
-            const balances = [principal];
-            let totalInterest = 0;
-            
-            for (let i = 0; i < term; i++) {
-                const interest = balance * monthlyRate;
-                const amortization = installment - interest;
-                balance -= amortization;
-                installmentsData.push({ installment, interest, amortization });
-                balances.push(balance > 0 ? balance : 0);
-                totalInterest += interest;
-            }
-
-            const totalPaid = installment * term;
-            return { first: installment, last: installment, totalPaid, totalInterest, installmentsData, balances };
-        }
-        
-        function calculateSAC(principal, term, annualRate) {
-            const monthlyRate = annualRate / 12 / 100;
-            const amortization = principal / term;
-            
-            let balance = principal;
-            const installmentsData = [];
-            const balances = [principal];
-            let totalPaid = 0;
-            let totalInterest = 0;
-
-            for (let i = 0; i < term; i++) {
-                const interest = balance * monthlyRate;
-                const installment = amortization + interest;
-                balance -= amortization;
-                
-                installmentsData.push({ installment, interest, amortization });
-                balances.push(balance > 0 ? balance : 0);
-                totalPaid += installment;
-                totalInterest += interest;
-            }
-
-            return { first: installmentsData[0].installment, last: installmentsData[term - 1].installment, totalPaid, totalInterest, installmentsData, balances };
-        }
-
-        function calculateSACRE(principal, term, annualRate) {
-            const monthlyRate = annualRate / 12 / 100;
-            let balance = principal;
-            const installmentsData = [];
-            const balances = [principal];
-            let totalPaid = 0;
-            let totalInterest = 0;
-
-            let remainingTerm = term;
-            for(let year = 0; year < term / 12; year++) {
-                const amortization = balance / remainingTerm;
-                for (let month = 0; month < 12; month++) {
-                      if (installmentsData.length >= term) break;
-                      const interest = balance * monthlyRate;
-                      const installment = amortization + interest;
-                      balance -= amortization;
-                      remainingTerm--;
-
-                      installmentsData.push({ installment, interest, amortization });
-                      balances.push(balance > 0 ? balance : 0);
-                      totalPaid += installment;
-                      totalInterest += interest;
-                }
-            }
-
-            return { first: installmentsData[0].installment, last: installmentsData[term - 1].installment, totalPaid, totalInterest, installmentsData, balances };
-        }
-
-        function calculateAmerican(principal, term, annualRate) {
-            const monthlyRate = annualRate / 12 / 100;
-            const interestPayment = principal * monthlyRate;
-            
-            const installmentsData = [];
-            const balances = [principal];
-            let totalPaid = 0;
-            let totalInterest = 0;
-
-            for (let i = 0; i < term; i++) {
-                const isLast = i === term - 1;
-                const installment = isLast ? interestPayment + principal : interestPayment;
-                const interest = interestPayment;
-                const amortization = isLast ? principal : 0;
-                
-                installmentsData.push({ installment, interest, amortization });
-                if(!isLast) balances.push(principal);
-                else balances.push(0);
-
-                totalPaid += installment;
-                totalInterest += interest;
-            }
-             
-            return { first: interestPayment, last: interestPayment + principal, totalPaid, totalInterest, installmentsData, balances };
-        }
-
-        function calculateMisto(principal, term, annualRate) {
-             const sacResult = calculateSAC(principal, term, annualRate);
-             const installmentsData = sacResult.installmentsData.slice(); // Copy
-             const balances = sacResult.balances.slice();
-             let totalPaid = sacResult.totalPaid;
-             let totalInterest = sacResult.totalInterest;
-
-             const midPoint = Math.floor(term / 2);
-             const fixedInstallment = installmentsData[midPoint].installment;
-             let balance = balances[midPoint + 1];
-
-             let newTotalPaid = 0;
-             let newTotalInterest = 0;
-             
-             for(let i=0; i<midPoint; i++){
-                newTotalPaid += installmentsData[i].installment;
-                newTotalInterest += installmentsData[i].interest;
-             }
-
-             const monthlyRate = annualRate / 12 / 100;
-
-             for (let i = midPoint; i < term; i++) {
-                 const interest = balance * monthlyRate;
-                 let amortization = fixedInstallment - interest;
-                 if (balance - amortization < 0) {
-                     amortization = balance;
-                 }
-                 balance -= amortization;
-
-                 installmentsData[i] = { installment: fixedInstallment, interest, amortization };
-                 balances[i+1] = balance > 0 ? balance : 0;
-                 newTotalPaid += fixedInstallment;
-                 newTotalInterest += interest;
-             }
-
-            return { first: installmentsData[0].installment, last: installmentsData[term-1].installment, totalPaid: newTotalPaid, totalInterest: newTotalInterest, installmentsData, balances };
-        }
-
-
-        const systems = [
-            { id: 'price', title: 'Francês (Price)', description: 'Parcelas constantes do início ao fim.', calculator: calculatePrice },
-            { id: 'sac', title: 'Constante (SAC)', description: 'Amortização constante e parcelas decrescentes.', calculator: calculateSAC },
-            { id: 'sacre', title: 'Crescente (SACRE)', description: 'Parcelas reajustadas, geralmente anualmente.', calculator: calculateSACRE },
-            { id: 'american', title: 'Americano', description: 'Paga-se só juros, e o principal no final.', calculator: calculateAmerican },
-            { id: 'misto', title: 'Misto (SAC_Price)', description: 'Híbrido que combina características de outros sistemas.', calculator: calculateMisto },
-        ];
-
-
-        const runSimulation = () => {
-            resultsGrid.innerHTML = '';
-            charts = {};
-            
-            const p = parseFloat(loanAmountInput.value);
-            const t = parseInt(loanTermInput.value);
-            const r = parseFloat(interestRateInput.value);
-            
-            if (isNaN(p) || isNaN(t) || isNaN(r) || p <= 0 || t <= 0) {
-                alert("Por favor, insira valores válidos.");
-                return;
-            }
-
-            const labels = Array.from({ length: t + 1 }, (_, i) => i);
-            
-            // Prepare object to hold data for Excel export later
-            currentSimulationData = { p, t, r, systemsResults: [] };
-
-            systems.forEach(sys => {
-                const card = createCard(sys.id, sys.title, sys.description);
-                resultsGrid.appendChild(card);
-                
-                setTimeout(() => { card.style.opacity = 1; }, 100);
-
-                const result = sys.calculator(p, t, r);
-                
-                // Save for export
-                currentSimulationData.systemsResults.push({
-                    name: sys.title,
-                    data: result
-                });
-                
-                document.getElementById(`first-installment-${sys.id}`).textContent = formatCurrency(result.first);
-                document.getElementById(`last-installment-${sys.id}`).textContent = formatCurrency(result.last);
-                document.getElementById(`total-paid-${sys.id}`).textContent = formatCurrency(result.totalPaid);
-                document.getElementById(`total-interest-${sys.id}`).textContent = formatCurrency(result.totalInterest);
-                
-                const installmentValues = result.installmentsData.map(d => d.installment);
-                const amortizationValues = result.installmentsData.map(d => d.amortization);
-                const interestValues = result.installmentsData.map(d => d.interest);
-
-                renderChart(`installments-chart-${sys.id}`, 'Composição da Parcela', labels.slice(1), amortizationValues, interestValues);
-                renderChart(`balance-chart-${sys.id}`, 'Evolução do Saldo Devedor', labels, result.balances);
-            });
-
-            // Show export button
-            exportBtn.classList.remove('hidden');
-        };
-
-        const exportToExcel = () => {
-            if (!currentSimulationData) return;
-
-            // Create a new workbook
-            const wb = XLSX.utils.book_new();
-
-            currentSimulationData.systemsResults.forEach(sys => {
-                // Header row
-                const wsData = [
-                    ["Mês", "Prestação (PMT)", "Juros", "Amortização", "Saldo Devedor"]
-                ];
-
-                // Initial state (Month 0)
-                wsData.push([0, 0, 0, 0, currentSimulationData.p]);
-
-                // Fill rows
-                sys.data.installmentsData.forEach((row, index) => {
-                    wsData.push([
-                        index + 1,
-                        row.installment,
-                        row.interest,
-                        row.amortization,
-                        sys.data.balances[index + 1]
-                    ]);
-                });
-
-                // Add Totals Row
-                wsData.push(["TOTAL", sys.data.totalPaid, sys.data.totalInterest, currentSimulationData.p, 0]);
-
-                // Create worksheet
-                const ws = XLSX.utils.aoa_to_sheet(wsData);
-                
-                // Add sheet to workbook (Clean name for Excel tab)
-                const sheetName = sys.name.replace(/[^a-zA-Z0-9 ]/g, "").substring(0, 31);
-                XLSX.utils.book_append_sheet(wb, ws, sheetName);
-            });
-
-            // Trigger download
-            XLSX.writeFile(wb, "Simulacao_Amortizacao.xlsx");
-        };
-        
-        simulateBtn.addEventListener('click', runSimulation);
-        exportBtn.addEventListener('click', exportToExcel);
-        
-        // Optional: Run simulation on Enter key
-        [loanAmountInput, interestRateInput, loanTermInput].forEach(input => {
-            input.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    runSimulation();
-                }
-            });
-        });
-
-    </script>
-</body>
-</html>
+                <h2 class="text-xl font-bold text-slate-90
